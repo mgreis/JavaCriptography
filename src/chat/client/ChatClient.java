@@ -13,29 +13,11 @@ public class ChatClient implements Runnable
     private DataInputStream  console   = null;
     private DataOutputStream streamOut = null;
     private ChatClientThread client    = null;
-    private KeyPairGenerator keyGen    = null;
-    private SecureRandom random        = null;
-    private KeyPair pair               = null;
-    private Signature dsa              = null;
 
 
     public ChatClient(String serverName, int serverPort)
     {
-        try {
-            keyGen = KeyPairGenerator.getInstance("DSA");
-            random = SecureRandom.getInstance ("SHA1PRNG","SUN");
-            keyGen.initialize(1024,random);
-            pair = keyGen.generateKeyPair();
-            dsa.initSign(pair.getPrivate());
 
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        }
         System.out.println("Establishing connection to server...");
         
         try
