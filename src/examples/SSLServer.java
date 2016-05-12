@@ -1,91 +1,182 @@
 package examples;
 
-import java.io.*;
-import java.security.Security;
-import java.security.PrivilegedActionException;
-
-import javax.net.ssl.*;
-import com.sun.net.ssl.*;
-import com.sun.net.ssl.internal.ssl.Provider;
-
-/**
- * @author Joe Prasanna Kumar
- * This program simulates an SSL Server listening on a specific port for client requests
+/*
  *
- * Algorithm:
- * 1. Register the JSSE provider
- * 2. Set System property for keystore by specifying the keystore which contains the server certificate
- * 3. Set System property for the password of the keystore which contains the server certificate
- * 4. Create an instance of SSLServerSocketFactory
- * 5. Create an instance of SSLServerSocket by specifying the port to which the SSL Server socket needs to bind with
- * 6. Initialize an object of SSLSocket
- * 7. Create InputStream object to read data sent by clients
- * 8. Create an OutputStream object to write data back to clients.
+ * Copyright (c) 1994, 2004, Oracle and/or its affiliates. All rights reserved.
  *
+ * Redistribution and use in source and binary forms, with or
+ * without modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * -Redistribution of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *
+ * Redistribution in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in
+ * the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * Neither the name of Oracle nor the names of
+ * contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ *
+ * This software is provided "AS IS," without a warranty of any
+ * kind. ALL EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND
+ * WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY
+ * EXCLUDED. SUN MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL
+ * NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT
+ * OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR
+ * ANY LOST REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT,
+ * SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER
+ * CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF
+ * THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF SUN HAS
+ * BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ *
+ * You acknowledge that this software is not designed, licensed or
+ * intended for use in the design, construction, operation or
+ * maintenance of any nuclear facility.
  */
 
+import java.io.*;
+import java.net.*;
+import java.security.KeyStore;
+import javax.net.*;
+import javax.net.ssl.*;
+import javax.security.cert.X509Certificate;
 
-public class SSLServer {
+/* ClassFileServer.java -- a simple file server that can server
+ * Http get request in both clear and secure channel
+ *
+ * The ClassFileServer implements a ClassServer that
+ * reads files from the file system. See the
+ * doc for the "Main" method for how to run this
+ * server.
+ */
+
+public class SSLServer extends ClassServer {
+
+    private String docroot;
+
+    private static int DefaultServerPort = 2001;
 
     /**
-     * @param args
+     * Constructs a ClassFileServer.
+     *
+     * @param ss the path where the server locates files
      */
-
-    public static void main(String[] args) throws Exception{
-
-        int intSSLport = 4443; // Port where the SSL Server needs to listen for new requests from the client
-
-        {
-            // Registering the JSSE provider
-            Security.addProvider(new Provider());
-
-            //Specifying the Keystore details
-            System.setProperty("javax.net.ssl.keyStore","server.ks");
-            System.setProperty("javax.net.ssl.keyStorePassword","JsEkey@4");
-
-            // Enable debugging to view the handshake and communication which happens between the SSLClient and the SSLServer
-            // System.setProperty("javax.net.debug","all");
-        }
-
-        try {
-            // Initialize the Server Socket
-            SSLServerSocketFactory sslServerSocketfactory = (SSLServerSocketFactory)SSLServerSocketFactory.getDefault();
-            SSLServerSocket sslServerSocket = (SSLServerSocket)sslServerSocketfactory.createServerSocket(intSSLport);
-            SSLSocket sslSocket = (SSLSocket)sslServerSocket.accept();
-
-            // Create Input / Output Streams for communication with the client
-            while(true)
-            {
-                PrintWriter out = new PrintWriter(sslSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(
-                                sslSocket.getInputStream()));
-                String inputLine, outputLine;
-
-                while ((inputLine = in.readLine()) != null) {
-                    out.println(inputLine);
-                    System.out.println(inputLine);
-                }
-
-                // Close the streams and the socket
-                out.close();
-                in.close();
-                sslSocket.close();
-                sslServerSocket.close();
-
-            }
-        }
-
-
-        catch(Exception exp)
-        {
-            PrivilegedActionException priexp = new PrivilegedActionException(exp);
-            System.out.println(" Priv exp --- " + priexp.getMessage());
-
-            System.out.println(" Exception occurred .... " +exp);
-            exp.printStackTrace();
-        }
-
+    public SSLServer(ServerSocket ss, String docroot) throws IOException
+    {
+        super(ss);
+        this.docroot = docroot;
     }
 
+    /**
+     * Returns an array of bytes containing the bytes for
+     * the file represented by the argument <b>path</b>.
+     *
+     * @return the bytes for the file
+     * @exception FileNotFoundException if the file corresponding
+     * to <b>path</b> could not be loaded.
+     */
+    public byte[] getBytes(String path)
+            throws IOException
+    {
+        System.out.println("reading: " + path);
+        File f = new File(docroot + File.separator + path);
+        int length = (int)(f.length());
+        if (length == 0) {
+            throw new IOException("File length is zero: " + path);
+        } else {
+            FileInputStream fin = new FileInputStream(f);
+            DataInputStream in = new DataInputStream(fin);
+
+            byte[] bytecodes = new byte[length];
+            in.readFully(bytecodes);
+            return bytecodes;
+        }
+    }
+
+    /**
+     * Main method to create the class server that reads
+     * files. This takes two command line arguments, the
+     * port on which the server accepts requests and the
+     * root of the path. To start up the server: <br><br>
+     *
+     * <code>   java ClassFileServer <port> <path>
+     * </code><br><br>
+     *
+     * <code>   new ClassFileServer(port, docroot);
+     * </code>
+     */
+    public static void main(String args[])
+    {
+        System.out.println(
+                "USAGE: java ClassFileServer port docroot [TLS [true]]");
+        System.out.println("");
+        System.out.println(
+                "If the third argument is TLS, it will start as\n" +
+                        "a TLS/SSL file server, otherwise, it will be\n" +
+                        "an ordinary file server. \n" +
+                        "If the fourth argument is true,it will require\n" +
+                        "client authentication as well.");
+
+        int port = DefaultServerPort;
+        String docroot = "";
+
+        if (args.length >= 1) {
+            port = Integer.parseInt(args[0]);
+        }
+
+        if (args.length >= 2) {
+            docroot = args[1];
+        }
+        String type = "PlainSocket";
+        if (args.length >= 3) {
+            type = args[2];
+        }
+        try {
+            ServerSocketFactory ssf =
+                    SSLServer.getServerSocketFactory(type);
+            ServerSocket ss = ssf.createServerSocket(port);
+            if (args.length >= 4 && args[3].equals("true")) {
+                ((SSLServerSocket)ss).setNeedClientAuth(true);
+            }
+            new SSLServer(ss, docroot);
+        } catch (IOException e) {
+            System.out.println("Unable to start ClassServer: " +
+                    e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static ServerSocketFactory getServerSocketFactory(String type) {
+        if (type.equals("TLS")) {
+            SSLServerSocketFactory ssf = null;
+            try {
+                // set up key manager to do server authentication
+                SSLContext ctx;
+                KeyManagerFactory kmf;
+                KeyStore ks;
+                char[] passphrase = "passphrase".toCharArray();
+
+                ctx = SSLContext.getInstance("TLS");
+                kmf = KeyManagerFactory.getInstance("SunX509");
+                ks = KeyStore.getInstance("JKS");
+
+                ks.load(new FileInputStream("testkeys"), passphrase);
+                kmf.init(ks, passphrase);
+                ctx.init(kmf.getKeyManagers(), null, null);
+
+                ssf = ctx.getServerSocketFactory();
+                return ssf;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            return ServerSocketFactory.getDefault();
+        }
+        return null;
+    }
 }
