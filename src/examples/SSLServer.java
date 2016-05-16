@@ -38,7 +38,6 @@ package examples;
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  */
-
 import java.io.*;
 import java.net.*;
 import java.security.KeyStore;
@@ -54,7 +53,6 @@ import javax.security.cert.X509Certificate;
  * doc for the "Main" method for how to run this
  * server.
  */
-
 public class SSLServer extends ClassServer {
 
     private String docroot;
@@ -66,26 +64,24 @@ public class SSLServer extends ClassServer {
      *
      * @param ss the path where the server locates files
      */
-    public SSLServer(ServerSocket ss, String docroot) throws IOException
-    {
+    public SSLServer(ServerSocket ss, String docroot) throws IOException {
         super(ss);
         this.docroot = docroot;
     }
 
     /**
-     * Returns an array of bytes containing the bytes for
-     * the file represented by the argument <b>path</b>.
+     * Returns an array of bytes containing the bytes for the file represented
+     * by the argument <b>path</b>.
      *
      * @return the bytes for the file
-     * @exception FileNotFoundException if the file corresponding
-     * to <b>path</b> could not be loaded.
+     * @exception FileNotFoundException if the file corresponding to <b>path</b>
+     * could not be loaded.
      */
     public byte[] getBytes(String path)
-            throws IOException
-    {
+            throws IOException {
         System.out.println("reading: " + path);
         File f = new File(docroot + File.separator + path);
-        int length = (int)(f.length());
+        int length = (int) (f.length());
         if (length == 0) {
             throw new IOException("File length is zero: " + path);
         } else {
@@ -99,10 +95,9 @@ public class SSLServer extends ClassServer {
     }
 
     /**
-     * Main method to create the class server that reads
-     * files. This takes two command line arguments, the
-     * port on which the server accepts requests and the
-     * root of the path. To start up the server: <br><br>
+     * Main method to create the class server that reads files. This takes two
+     * command line arguments, the port on which the server accepts requests and
+     * the root of the path. To start up the server: <br><br>
      *
      * <code>   java ClassFileServer <port> <path>
      * </code><br><br>
@@ -110,17 +105,16 @@ public class SSLServer extends ClassServer {
      * <code>   new ClassFileServer(port, docroot);
      * </code>
      */
-    public static void main(String args[])
-    {
+    public static void main(String args[]) {
         System.out.println(
                 "USAGE: java ClassFileServer port docroot [TLS [true]]");
         System.out.println("");
         System.out.println(
-                "If the third argument is TLS, it will start as\n" +
-                        "a TLS/SSL file server, otherwise, it will be\n" +
-                        "an ordinary file server. \n" +
-                        "If the fourth argument is true,it will require\n" +
-                        "client authentication as well.");
+                "If the third argument is TLS, it will start as\n"
+                + "a TLS/SSL file server, otherwise, it will be\n"
+                + "an ordinary file server. \n"
+                + "If the fourth argument is true,it will require\n"
+                + "client authentication as well.");
 
         int port = DefaultServerPort;
         String docroot = "";
@@ -137,16 +131,16 @@ public class SSLServer extends ClassServer {
             type = args[2];
         }
         try {
-            ServerSocketFactory ssf =
-                    SSLServer.getServerSocketFactory(type);
+            ServerSocketFactory ssf
+                    = SSLServer.getServerSocketFactory(type);
             ServerSocket ss = ssf.createServerSocket(port);
             if (args.length >= 4 && args[3].equals("true")) {
-                ((SSLServerSocket)ss).setNeedClientAuth(true);
+                ((SSLServerSocket) ss).setNeedClientAuth(true);
             }
             new SSLServer(ss, docroot);
         } catch (IOException e) {
-            System.out.println("Unable to start ClassServer: " +
-                    e.getMessage());
+            System.out.println("Unable to start ClassServer: "
+                    + e.getMessage());
             e.printStackTrace();
         }
     }

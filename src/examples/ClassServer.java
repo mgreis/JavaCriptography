@@ -1,4 +1,5 @@
 package examples;
+
 /*
  *
  * Copyright (c) 1994, 2004, Oracle and/or its affiliates. All rights reserved.
@@ -37,7 +38,6 @@ package examples;
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  */
-
 import java.io.*;
 import java.net.*;
 import javax.net.*;
@@ -46,44 +46,41 @@ import javax.net.*;
  * ClassServer.java -- a simple file server that can serve
  * Http get request in both clear and secure channel
  */
-
 /**
  * Based on ClassServer.java in tutorial/rmi
  */
 public abstract class ClassServer implements Runnable {
 
     private ServerSocket server = null;
+
     /**
-     * Constructs a ClassServer based on <b>ss</b> and
-     * obtains a file's bytecodes using the method <b>getBytes</b>.
+     * Constructs a ClassServer based on <b>ss</b> and obtains a file's
+     * bytecodes using the method <b>getBytes</b>.
      *
      */
-    protected ClassServer(ServerSocket ss)
-    {
+    protected ClassServer(ServerSocket ss) {
         server = ss;
         newListener();
     }
 
     /**
-     * Returns an array of bytes containing the bytes for
-     * the file represented by the argument <b>path</b>.
+     * Returns an array of bytes containing the bytes for the file represented
+     * by the argument <b>path</b>.
      *
      * @return the bytes for the file
-     * @exception FileNotFoundException if the file corresponding
-     * to <b>path</b> could not be loaded.
+     * @exception FileNotFoundException if the file corresponding to <b>path</b>
+     * could not be loaded.
      * @exception IOException if error occurs reading the class
      */
     public abstract byte[] getBytes(String path)
-        throws IOException, FileNotFoundException;
+            throws IOException, FileNotFoundException;
 
     /**
-     * The "listen" thread that accepts a connection to the
-     * server, parses the header to obtain the file name
-     * and sends back the bytes for the file (or error
-     * if the file is not found or the response was malformed).
+     * The "listen" thread that accepts a connection to the server, parses the
+     * header to obtain the file name and sends back the bytes for the file (or
+     * error if the file is not found or the response was malformed).
      */
-    public void run()
-    {
+    public void run() {
         Socket socket;
 
         // accept a connection
@@ -102,22 +99,22 @@ public abstract class ClassServer implements Runnable {
             OutputStream rawOut = socket.getOutputStream();
 
             PrintWriter out = new PrintWriter(
-                                new BufferedWriter(
-                                new OutputStreamWriter(
-                                rawOut)));
+                    new BufferedWriter(
+                            new OutputStreamWriter(
+                                    rawOut)));
             try {
                 // get path to class file from header
-                BufferedReader in =
-                    new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
+                BufferedReader in
+                        = new BufferedReader(
+                                new InputStreamReader(socket.getInputStream()));
                 String path = getPath(in);
                 // retrieve bytecodes
                 byte[] bytecodes = getBytes(path);
                 // send bytecodes in response (assumes HTTP/1.0 or later)
                 try {
                     out.print("HTTP/1.0 200 OK\r\n");
-                    out.print("Content-Length: " + bytecodes.length +
-                                   "\r\n");
+                    out.print("Content-Length: " + bytecodes.length
+                            + "\r\n");
                     out.print("Content-Type: text/html\r\n\r\n");
                     out.flush();
                     rawOut.write(bytecodes);
@@ -152,23 +149,20 @@ public abstract class ClassServer implements Runnable {
     /**
      * Create a new thread to listen.
      */
-    private void newListener()
-    {
+    private void newListener() {
         (new Thread(this)).start();
     }
 
     /**
-     * Returns the path to the file obtained from
-     * parsing the HTML header.
+     * Returns the path to the file obtained from parsing the HTML header.
      */
     private static String getPath(BufferedReader in)
-        throws IOException
-    {
+            throws IOException {
         String line = in.readLine();
         String path = "";
         // extract class from GET line
         if (line.startsWith("GET /")) {
-            line = line.substring(5, line.length()-1).trim();
+            line = line.substring(5, line.length() - 1).trim();
             int index = line.indexOf(' ');
             if (index != -1) {
                 path = line.substring(0, index);
@@ -178,8 +172,8 @@ public abstract class ClassServer implements Runnable {
         // eat the rest of header
         do {
             line = in.readLine();
-        } while ((line.length() != 0) &&
-                 (line.charAt(0) != '\r') && (line.charAt(0) != '\n'));
+        } while ((line.length() != 0)
+                && (line.charAt(0) != '\r') && (line.charAt(0) != '\n'));
 
         if (path.length() != 0) {
             return path;

@@ -36,39 +36,29 @@ package examples;/*
  */
 
 /**
- * A SSLEngine usage example which simplifies the presentation
- * by removing the I/O and multi-threading concerns.
+ * A SSLEngine usage example which simplifies the presentation by removing the
+ * I/O and multi-threading concerns.
  *
- * The demo creates two SSLEngines, simulating a client and server.
- * The "transport" layer consists two ByteBuffers:  think of them
- * as directly connected pipes.
+ * The demo creates two SSLEngines, simulating a client and server. The
+ * "transport" layer consists two ByteBuffers: think of them as directly
+ * connected pipes.
  *
- * Note, this is a *very* simple example: real code will be much more
- * involved.  For example, different threading and I/O models could be
- * used, transport mechanisms could close unexpectedly, and so on.
+ * Note, this is a *very* simple example: real code will be much more involved.
+ * For example, different threading and I/O models could be used, transport
+ * mechanisms could close unexpectedly, and so on.
  *
- * When this application runs, notice that several messages
- * (wrap/unwrap) pass before any application data is consumed or
- * produced.  (For more information, please see the SSL/TLS
- * specifications.)  There may several steps for a successful handshake,
- * so it's typical to see the following series of operations:
+ * When this application runs, notice that several messages (wrap/unwrap) pass
+ * before any application data is consumed or produced. (For more information,
+ * please see the SSL/TLS specifications.) There may several steps for a
+ * successful handshake, so it's typical to see the following series of
+ * operations:
  *
- *      client          server          message
- *      ======          ======          =======
- *      wrap()          ...             ClientHello
- *      ...             unwrap()        ClientHello
- *      ...             wrap()          ServerHello/Certificate
- *      unwrap()        ...             ServerHello/Certificate
- *      wrap()          ...             ClientKeyExchange
- *      wrap()          ...             ChangeCipherSpec
- *      wrap()          ...             Finished
- *      ...             unwrap()        ClientKeyExchange
- *      ...             unwrap()        ChangeCipherSpec
- *      ...             unwrap()        Finished
- *      ...             wrap()          ChangeCipherSpec
- *      ...             wrap()          Finished
- *      unwrap()        ...             ChangeCipherSpec
- *      unwrap()        ...             Finished
+ * client server message ====== ====== ======= wrap() ... ClientHello ...
+ * unwrap() ClientHello ... wrap() ServerHello/Certificate unwrap() ...
+ * ServerHello/Certificate wrap() ... ClientKeyExchange wrap() ...
+ * ChangeCipherSpec wrap() ... Finished ... unwrap() ClientKeyExchange ...
+ * unwrap() ChangeCipherSpec ... unwrap() Finished ... wrap() ChangeCipherSpec
+ * ... wrap() Finished unwrap() ... ChangeCipherSpec unwrap() ... Finished
  */
 
 import javax.net.ssl.*;
@@ -194,8 +184,8 @@ public class SSLEngineSimpleDemo {
          * to write to the output pipe, we could reallocate a larger
          * pipe, but instead we wait for the peer to drain it.
          */
-        while (!isEngineClosed(clientEngine) ||
-                !isEngineClosed(serverEngine)) {
+        while (!isEngineClosed(clientEngine)
+                || !isEngineClosed(serverEngine)) {
 
             log("================");
 
@@ -235,8 +225,8 @@ public class SSLEngineSimpleDemo {
              * determined that no more input data will ever be
              * available (say a closed input stream).
              */
-            if (!dataDone && (clientOut.limit() == serverIn.position()) &&
-                    (serverOut.limit() == clientIn.position())) {
+            if (!dataDone && (clientOut.limit() == serverIn.position())
+                    && (serverOut.limit() == clientIn.position())) {
 
                 /*
                  * A sanity check to ensure we got what was sent.
@@ -309,7 +299,7 @@ public class SSLEngineSimpleDemo {
      * go ahead and run them in this thread.
      */
     private static void runDelegatedTasks(SSLEngineResult result,
-                                          SSLEngine engine) throws Exception {
+            SSLEngine engine) throws Exception {
 
         if (result.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
             Runnable runnable;
@@ -361,15 +351,15 @@ public class SSLEngineSimpleDemo {
         }
         if (resultOnce) {
             resultOnce = false;
-            System.out.println("The format of the SSLEngineResult is: \n" +
-                    "\t\"getStatus() / getHandshakeStatus()\" +\n" +
-                    "\t\"bytesConsumed() / bytesProduced()\"\n");
+            System.out.println("The format of the SSLEngineResult is: \n"
+                    + "\t\"getStatus() / getHandshakeStatus()\" +\n"
+                    + "\t\"bytesConsumed() / bytesProduced()\"\n");
         }
         HandshakeStatus hsStatus = result.getHandshakeStatus();
-        log(str +
-                result.getStatus() + "/" + hsStatus + ", " +
-                result.bytesConsumed() + "/" + result.bytesProduced() +
-                " bytes");
+        log(str
+                + result.getStatus() + "/" + hsStatus + ", "
+                + result.bytesConsumed() + "/" + result.bytesProduced()
+                + " bytes");
         if (hsStatus == HandshakeStatus.FINISHED) {
             log("\t...ready for application data");
         }

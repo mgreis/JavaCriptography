@@ -36,8 +36,8 @@
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  */
-
 package examples;
+
 import java.net.*;
 import java.io.*;
 import javax.net.ssl.*;
@@ -58,13 +58,14 @@ public class SSLClient {
         String host = null;
         int port = -1;
         String path = null;
-        for (int i = 0; i < args.length; i++)
+        for (int i = 0; i < args.length; i++) {
             System.out.println(args[i]);
+        }
 
         if (args.length < 3) {
             System.out.println(
-                    "USAGE: java SSLSocketClientWithClientAuth " +
-                            "host port requestedfilepath");
+                    "USAGE: java SSLSocketClientWithClientAuth "
+                    + "host port requestedfilepath");
             System.exit(-1);
         }
 
@@ -73,8 +74,8 @@ public class SSLClient {
             port = Integer.parseInt(args[1]);
             path = args[2];
         } catch (IllegalArgumentException e) {
-            System.out.println("USAGE: java SSLSocketClientWithClientAuth " +
-                    "host port requestedfilepath");
+            System.out.println("USAGE: java SSLSocketClientWithClientAuth "
+                    + "host port requestedfilepath");
             System.exit(-1);
         }
 
@@ -106,7 +107,7 @@ public class SSLClient {
                 throw new IOException(e.getMessage());
             }
 
-            SSLSocket socket = (SSLSocket)factory.createSocket(host, port);
+            SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
 
             /*
              * send http request
@@ -127,9 +128,10 @@ public class SSLClient {
             /*
              * Make sure there were no surprises
              */
-            if (out.checkError())
+            if (out.checkError()) {
                 System.out.println(
                         "SSLSocketClient: java.io.PrintWriter error");
+            }
 
             /* read response */
             BufferedReader in = new BufferedReader(
@@ -138,8 +140,9 @@ public class SSLClient {
 
             String inputLine;
 
-            while ((inputLine = in.readLine()) != null)
+            while ((inputLine = in.readLine()) != null) {
                 System.out.println(inputLine);
+            }
 
             in.close();
             out.close();
