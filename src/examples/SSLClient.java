@@ -62,12 +62,12 @@ public class SSLClient {
             System.out.println(args[i]);
         }
 
-        if (args.length < 3) {
+        /*if (args.length < 3) {
             System.out.println(
                     "USAGE: java SSLSocketClientWithClientAuth "
                     + "host port requestedfilepath");
             System.exit(-1);
-        }
+        }*/
 
         try {
             host = args[0];
