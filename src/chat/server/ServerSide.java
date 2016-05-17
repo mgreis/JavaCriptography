@@ -1,13 +1,11 @@
 package chat.server;
 
 import javax.net.ServerSocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.*;
 import java.net.*;
 import java.io.*;
 import java.security.KeyStore;
+import java.security.SecureRandom;
 
 
 public class ServerSide implements Runnable
@@ -172,14 +170,32 @@ public class ServerSide implements Runnable
             SSLServerSocketFactory ssf = null;
             try {
                 // set up key manager to do server authentication
-                SSLContext ctx = SSLContext.getInstance("TLS");
+                SSLContext ctx = SSLContext.getInstance("TLSV1.2");
+
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
                 KeyStore ks = KeyStore.getInstance("JKS");
+                KeyStore kt = KeyStore.getInstance("JKS");
                 char[] passphrase = "123456".toCharArray();
 
-                ks.load(new FileInputStream("C:\\Keys\\DebKeyStore.jks"), passphrase);
+                ks.load(new FileInputStream("C:\\CA\\mykeystore.jks"), passphrase);
+                kt.load(new FileInputStream("C:\\CA\\mykeystore.jks"), passphrase);
                 kmf.init(ks, passphrase);
-                ctx.init(kmf.getKeyManagers(), null, null);
+                tmf.init(kt);
+
+                /*FileInputStream s = new FileInputStream("c:\\keys\\DebKeyStore.jks");
+
+                StringBuilder builder = new StringBuilder();
+                int ch;
+                while((ch = s.read()) != -1){
+                    builder.append((char)ch);
+                }
+
+                System.out.println(builder.toString());
+                */
+
+
+                ctx.init(kmf.getKeyManagers(),tmf.getTrustManagers(), new SecureRandom());
 
                 ssf = ctx.getServerSocketFactory();
                 return ssf;

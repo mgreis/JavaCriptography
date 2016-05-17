@@ -2,22 +2,23 @@ package chat.client;
 
 
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.*;
 import java.net.*;
 import java.io.*;
 import java.security.*;
+import java.security.cert.X509Certificate;
 
 public class ClientSide implements Runnable
 {
-    private SSLSocket socket           = null;
-    private Thread thread              = null;
-    private DataInputStream  console   = null;
-    private DataOutputStream streamOut = null;
-    private ClientSideThread client    = null;
-
+    private SSLSocket socket                        = null;
+    private Thread thread                           = null;
+    private DataInputStream  console                = null;
+    private DataOutputStream streamOut              = null;
+    private ClientSideThread client                 = null;
+    private SSLSessionContext clientSessionContext  = null;
+    static final int SESSION_CACHE_SIZE = 4;
+    // Time sessions out after 15 minutes.
+    static final int SESSION_TIMEOUT = 15 * 60; // 15m
 
 
 
@@ -32,29 +33,41 @@ public class ClientSide implements Runnable
 
             SSLSocketFactory factory = null;
             try {
-                SSLContext  ctx = SSLContext.getInstance("TLS");
+                SSLContext  ctx = SSLContext.getInstance("TLSV1.2");
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+
                 KeyStore ks = KeyStore.getInstance("JKS");
+                KeyStore kt = KeyStore.getInstance("JKS");
+
                 char[] passphrase = "123456".toCharArray();
-                ks.load(new FileInputStream("C:\\Keys\\DebKeyStore.jks"), passphrase);
+                ks.load(new FileInputStream("C:\\CA\\mykeystore.jks"), passphrase);
+                kt.load(new FileInputStream("C:\\CA\\mykeystore.jks"), passphrase);
 
                 kmf.init(ks, passphrase);
-                ctx.init(kmf.getKeyManagers(), null, null);
+                tmf.init(kt);
+                ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(),new SecureRandom());
+                System.out.println("1");
+
 
                 factory = ctx.getSocketFactory();
+                System.out.println("2");
+
             } catch (Exception e) {
                 throw new IOException(e.getMessage());
             }
-
+            System.out.println("3");
             socket = (SSLSocket)factory.createSocket(serverName, serverPort);
-
+            System.out.println("4");
+            socket.startHandshake();
+            System.out.println("5");
             System.out.println("Connected to server: " + socket);
             start();
         }
 
         catch(UnknownHostException uhe)
         {
-            // Host unkwnown
+            // Host unknown
             System.out.println("Error establishing connection - host unknown: " + uhe.getMessage());
         }
 
@@ -146,6 +159,7 @@ public class ClientSide implements Runnable
             // Calls new client
             client = new ClientSide(args[0], Integer.parseInt(args[1]));
     }
+
 
 }
 
