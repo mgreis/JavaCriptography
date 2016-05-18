@@ -19,6 +19,7 @@ public class ClientSide implements Runnable
     static final int SESSION_CACHE_SIZE = 4;
     // Time sessions out after 15 minutes.
     static final int SESSION_TIMEOUT = 15 * 60; // 15m
+    Scheduler scheduler                             = null;
 
 
 
@@ -47,20 +48,21 @@ public class ClientSide implements Runnable
                 kmf.init(ks, passphrase);
                 tmf.init(kt);
                 ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(),new SecureRandom());
-                System.out.println("1");
+
 
 
                 factory = ctx.getSocketFactory();
-                System.out.println("2");
+
 
             } catch (Exception e) {
                 throw new IOException(e.getMessage());
             }
-            System.out.println("3");
+
             socket = (SSLSocket)factory.createSocket(serverName, serverPort);
-            System.out.println("4");
+
             socket.startHandshake();
-            System.out.println("5");
+            scheduler = new Scheduler(socket);
+
             System.out.println("Connected to server: " + socket);
             start();
         }
