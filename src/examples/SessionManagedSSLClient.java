@@ -37,6 +37,7 @@ public class SessionManagedSSLClient implements HandshakeCompletedListener {
 
     /**
      * Create new SessionManagedSSLClient
+     *
      * @param host target host
      * @param port target port
      * @exception IOException creating socket
@@ -57,7 +58,9 @@ public class SessionManagedSSLClient implements HandshakeCompletedListener {
         socket.addHandshakeCompletedListener(this);
     }
 
-    /** Handle conversation */
+    /**
+     * Handle conversation
+     */
     public void handleConversation() {
         try {
             InputStream in = new BufferedInputStream(socket.getInputStream());
@@ -83,8 +86,7 @@ public class SessionManagedSSLClient implements HandshakeCompletedListener {
      * handshakeCompleted callback. Called whenever a handshake completes
      * successfully. Handshaking is usually asynchronous, but no I/O is done on
      * the socket until a handshake completes successfully, so there is no need
-     * to synchronize anything with 
-     * the completion of this method.
+     * to synchronize anything with the completion of this method.
      */
     @Override
     public void handshakeCompleted(HandshakeCompletedEvent event) {

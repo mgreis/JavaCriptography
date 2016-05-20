@@ -68,7 +68,6 @@ public class SSLClient {
                     + "host port requestedfilepath");
             System.exit(-1);
         }*/
-
         try {
             host = args[0];
             port = Integer.parseInt(args[1]);

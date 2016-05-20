@@ -12,14 +12,14 @@ import java.io.IOException;
  *
  * @author Mário
  */
-public class Dispatcher extends Thread{
+public class Dispatcher extends Thread {
+
     SSLSocket socket;
-    
-    public Dispatcher (SSLSocket socket){
+
+    public Dispatcher(SSLSocket socket) {
         this.socket = socket;
     }
 
-    
     @Override
     public void run() {
         try {
@@ -29,5 +29,5 @@ public class Dispatcher extends Thread{
         }
 
     }
-    
+
 }

@@ -3,34 +3,27 @@ package chat.server;
 import java.io.*;
 import java.net.Socket;
 
-class ServerSideThread extends Thread
-{
-    private ServerSide       server    = null;
-    private Socket socket    = null;
-    private int              ID        = -1;
-    private DataInputStream streamIn  =  null;
+class ServerSideThread extends Thread {
+
+    private ServerSide server = null;
+    private Socket socket = null;
+    private int ID = -1;
+    private DataInputStream streamIn = null;
     private DataOutputStream streamOut = null;
 
-
-    public ServerSideThread(ServerSide _server, Socket _socket)
-    {
+    public ServerSideThread(ServerSide _server, Socket _socket) {
         super();
         server = _server;
         socket = _socket;
-        ID     = socket.getPort();
+        ID = socket.getPort();
     }
 
     // Sends message to client
-    public void send(String msg)
-    {
-        try
-        {
+    public void send(String msg) {
+        try {
             streamOut.writeUTF(msg);
             streamOut.flush();
-        }
-
-        catch(IOException ioexception)
-        {
+        } catch (IOException ioexception) {
             System.out.println(ID + " ERROR sending message: " + ioexception.getMessage());
             server.remove(ID);
             stop();
@@ -38,25 +31,18 @@ class ServerSideThread extends Thread
     }
 
     // Gets id for client
-    public int getID()
-    {
+    public int getID() {
         return ID;
     }
 
     // Runs thread
-    public void run()
-    {
+    public void run() {
         System.out.println("Server Thread " + ID + " running.");
 
-        while (true)
-        {
-            try
-            {
+        while (true) {
+            try {
                 server.handle(ID, streamIn.readUTF());
-            }
-
-            catch(IOException ioe)
-            {
+            } catch (IOException ioe) {
                 System.out.println(ID + " ERROR reading: " + ioe.getMessage());
                 server.remove(ID);
                 stop();
@@ -64,22 +50,23 @@ class ServerSideThread extends Thread
         }
     }
 
-
     // Opens thread
-    public void open() throws IOException
-    {
-        streamIn = new DataInputStream(new
-                BufferedInputStream(socket.getInputStream()));
-        streamOut = new DataOutputStream(new
-                BufferedOutputStream(socket.getOutputStream()));
+    public void open() throws IOException {
+        streamIn = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+        streamOut = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
     // Closes thread
-    public void close() throws IOException
-    {
-        if (socket != null)    socket.close();
-        if (streamIn != null)  streamIn.close();
-        if (streamOut != null) streamOut.close();
+    public void close() throws IOException {
+        if (socket != null) {
+            socket.close();
+        }
+        if (streamIn != null) {
+            streamIn.close();
+        }
+        if (streamOut != null) {
+            streamOut.close();
+        }
     }
 
 }
