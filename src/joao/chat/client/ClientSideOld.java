@@ -6,22 +6,22 @@ import java.net.*;
 import java.io.*;
 import java.security.*;
 
-public class ClientSide implements Runnable { // Classe de Envio de Mensagens
-private String username = null;     // Identficador do Cliente
+public class ClientSideOld implements Runnable {
+    
+    private String username = null;     // Identficador do Cliente
     private char[] passphrase = null;   // Identficador do Cliente
     private SSLSocket socket = null;
     private Thread thread = null;
     private BufferedReader console = null;
     private ObjectOutputStream streamOut = null; //private DataOutputStream streamOut = null;
-    private ClientSideThread client = null;
+    private ClientSideThreadOld client = null;
     private SSLSessionContext clientSessionContext = null;
     static final int SESSION_CACHE_SIZE = 4;
     // Time sessions out after 15 minutes.
     static final int SESSION_TIMEOUT = 15 * 60; // 15m
     Scheduler scheduler = null;
-    String pickedCipher[] ={"TLS_RSA_WITH_AES_128_CBC_SHA"};
-    
-    public ClientSide(String serverName, int serverPort, String username, String pass) {
+
+    public ClientSideOld(String serverName, int serverPort, String username, String pass) {
 
         System.out.println("Establishing connection to server...");
         this.username = username;
@@ -52,7 +52,7 @@ private String username = null;     // Identficador do Cliente
             }
 
             socket = (SSLSocket) factory.createSocket(serverName, serverPort);
-            socket.setEnabledCipherSuites(pickedCipher);
+
             socket.startHandshake();
             scheduler = new Scheduler(socket);
 
@@ -112,7 +112,7 @@ private String username = null;     // Identficador do Cliente
         //streamOut = new DataOutputStream(socket.getOutputStream());
         streamOut = new ObjectOutputStream(socket.getOutputStream());
         if (thread == null) {
-            client = new ClientSideThread(this, socket);
+            client = new ClientSideThreadOld(this, socket);
             thread = new Thread(this);
             thread.start();
         }
@@ -142,23 +142,23 @@ private String username = null;     // Identficador do Cliente
     }
 
     public static void main(String args[]) {
-        ClientSide client = null;
+        ClientSideOld client = null;
         if (args.length != 4) // Displays correct usage syntax on stdout
         {
             System.out.println("Usage: java ChatClient host port username pass");
         } else // Calls new client
         {
-            client = new ClientSide(args[0], Integer.parseInt(args[1]), args[2], args[3]);
+            client = new ClientSideOld(args[0], Integer.parseInt(args[1]), args[2], args[3]);
         }
     }
 
-    class ClientSideThread extends Thread {
+    class ClientSideThreadOld extends Thread {
 
         private Socket socket = null;
-        private ClientSide client = null;
+        private ClientSideOld client = null;
         private ObjectInputStream streamIn = null; //private DataInputStream streamIn = null;
 
-        public ClientSideThread(ClientSide _client, Socket _socket) {
+        public ClientSideThreadOld(ClientSideOld _client, Socket _socket) {
             client = _client;
             socket = _socket;
             open();

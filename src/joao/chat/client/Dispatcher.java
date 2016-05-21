@@ -13,7 +13,7 @@ import java.io.IOException;
  * @author Mário
  */
 public class Dispatcher extends Thread {
-
+    String pickedCipher[] ={"TLS_RSA_WITH_AES_128_CBC_SHA"};
     SSLSocket socket;
 
     public Dispatcher(SSLSocket socket) {
@@ -23,8 +23,11 @@ public class Dispatcher extends Thread {
     @Override
     public void run() {
         try {
+            socket.setEnabledCipherSuites(pickedCipher);
             socket.startHandshake();
+            System.out.println("Done scheduling!");
         } catch (IOException e) {
+            System.err.println("Error while scheduling!");
             e.printStackTrace();
         }
 

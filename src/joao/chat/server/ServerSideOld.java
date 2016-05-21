@@ -1,21 +1,21 @@
 package joao.chat.server;
 
-import joao.chat.commonPackage.Message;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.*;
 import java.net.*;
 import java.io.*;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import joao.chat.commonPackage.Message;
 
-public class ServerSide implements Runnable { // Thread de Aceitação de Sockets!
- 
-   private ServerSideThread clients[] = new ServerSideThread[20];
+public class ServerSideOld implements Runnable {
+
+    private ServerSideThreadOld clients[] = new ServerSideThreadOld[20];
     private ServerSocket server_socket = null;
     private Thread thread = null;
     private int clientCount = 0;
 
-    public ServerSide(int port, String pass) {
+    public ServerSideOld(int port, String pass) {
         try {
             // Binds to port and starts server
             System.out.println("Binding to port " + port);
@@ -117,7 +117,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
 
         if (pos >= 0) {
             // Removes thread for exiting client
-            ServerSideThread toTerminate = clients[pos];
+            ServerSideThreadOld toTerminate = clients[pos];
             System.out.println("Removing client thread " + ID + " at " + pos);
             if (pos < clientCount - 1) {
                 for (int i = pos + 1; i < clientCount; i++) {
@@ -140,7 +140,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
         if (clientCount < clients.length) {
             // Adds thread for new accepted client
             System.out.println("Client accepted: " + socket);
-            clients[clientCount] = new ServerSideThread(this, socket);
+            clients[clientCount] = new ServerSideThreadOld(this, socket);
 
             try {
                 clients[clientCount].open();
@@ -207,15 +207,15 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
         return null;
     }
 
-    class ServerSideThread extends Thread {
+    class ServerSideThreadOld extends Thread {
 
-        private ServerSide server = null;
+        private ServerSideOld server = null;
         private Socket socket = null;
         private int ID = -1;
         private ObjectInputStream streamIn = null;      //private DataInputStream streamIn = null;
         private ObjectOutputStream streamOut = null;    //private DataOutputStream streamOut = null;
 
-        public ServerSideThread(ServerSide _server, Socket _socket) {
+        public ServerSideThreadOld(ServerSideOld _server, Socket _socket) {
             super();
             server = _server;
             socket = _socket;
@@ -292,5 +292,4 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
             }
         }
     }
-
 }
