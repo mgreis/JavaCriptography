@@ -7,7 +7,8 @@ import java.io.*;
 import java.security.*;
 
 public class ClientSide implements Runnable { // Classe de Envio de Mensagens
-private String username = null;     // Identficador do Cliente
+
+    private String username = null;     // Identficador do Cliente
     private char[] passphrase = null;   // Identficador do Cliente
     private SSLSocket socket = null;
     private Thread thread = null;
@@ -19,8 +20,8 @@ private String username = null;     // Identficador do Cliente
     // Time sessions out after 15 minutes.
     static final int SESSION_TIMEOUT = 15 * 60; // 15m
     Scheduler scheduler = null;
-    String pickedCipher[] ={"TLS_RSA_WITH_AES_128_CBC_SHA"};
-    
+    String pickedCipher[] = {"TLS_RSA_WITH_AES_128_CBC_SHA"};
+
     public ClientSide(String serverName, int serverPort, String username, String pass) {
 
         System.out.println("Establishing connection to server...");
@@ -38,8 +39,8 @@ private String username = null;     // Identficador do Cliente
                 KeyStore ks = KeyStore.getInstance("JKS");
                 KeyStore kt = KeyStore.getInstance("JKS");
 
-                ks.load(new FileInputStream("certs/"+username+".jks"), passphrase);
-                kt.load(new FileInputStream("certs/"+username+"certs.jks"), passphrase);
+                ks.load(new FileInputStream("certs/" + username + ".jks"), passphrase);
+                kt.load(new FileInputStream("certs/" + username + "certs.jks"), passphrase);
 
                 kmf.init(ks, passphrase);
                 tmf.init(kt);
@@ -68,6 +69,7 @@ private String username = null;     // Identficador do Cliente
 
     }
 
+    @Override
     public void run() {
         while (thread != null) {
             try {
@@ -81,6 +83,7 @@ private String username = null;     // Identficador do Cliente
             }
         }
     }
+
     @Deprecated
     public void handle(String msg) {
         // Receives message from server
@@ -94,7 +97,7 @@ private String username = null;     // Identficador do Cliente
         }
     }
 
-     public void handle(Message msg) {
+    public void handle(Message msg) {
         // Receives message from server
         if (msg.getMessage().equals(".quit")) {
             // Leaving, quit command
@@ -105,7 +108,7 @@ private String username = null;     // Identficador do Cliente
             System.out.println(msg);
         }
     }
-    
+
     // Inits new client thread
     public void start() throws IOException {
         console = new BufferedReader(new InputStreamReader(System.in));

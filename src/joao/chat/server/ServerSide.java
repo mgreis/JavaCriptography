@@ -1,7 +1,6 @@
 package joao.chat.server;
 
 import joao.chat.commonPackage.Message;
-import javax.net.ServerSocketFactory;
 import javax.net.ssl.*;
 import java.net.*;
 import java.io.*;
@@ -9,20 +8,62 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 
 public class ServerSide implements Runnable { // Thread de Aceitação de Sockets!
- 
-   private ServerSideThread clients[] = new ServerSideThread[20];
-    private ServerSocket server_socket = null;
+
+    private ServerSideThread clients[] = new ServerSideThread[20];
+    private SSLServerSocket server_socket = null;
     private Thread thread = null;
     private int clientCount = 0;
+    String pickedCipher[] = {"TLS_RSA_WITH_AES_128_CBC_SHA"};
+
+    static final int SESSION_CACHE_SIZE = 4;    // Time sessions out after 15 minutes. 
+    static final int SESSION_TIMEOUT = 15 * 60; // 15m
+
+    private static SSLServerSocketFactory getServerSocketFactory(String type, String pass) {
+        if (type.equals("TLS")) {
+            SSLServerSocketFactory ssf = null;
+            char[] passphrase = pass.toCharArray();
+            try {
+                // set up key manager to do server authentication
+                SSLContext ctx = SSLContext.getInstance("TLSV1.2");
+
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+                KeyStore ks = KeyStore.getInstance("JKS");
+                KeyStore kt = KeyStore.getInstance("JKS");
+
+                ks.load(new FileInputStream("certs/server.jks"), passphrase);
+                kt.load(new FileInputStream("certs/servercerts.jks"), passphrase);
+                kmf.init(ks, passphrase);
+                tmf.init(kt);
+                
+                ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
+
+                ssf = ctx.getServerSocketFactory();
+                return ssf;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            return (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+        }
+        return null;
+    }
 
     public ServerSide(int port, String pass) {
+        //System.setProperty("javax.net.debug", "ssl");
+        System.out.println("TROL");
         try {
             // Binds to port and starts server
             System.out.println("Binding to port " + port);
-            ServerSocketFactory ssf
+            SSLServerSocketFactory ssf
                     = this.getServerSocketFactory("TLS", pass);
-            server_socket = ssf.createServerSocket(port);
-            ((SSLServerSocket) server_socket).setNeedClientAuth(true);
+            server_socket = (SSLServerSocket) ssf.createServerSocket(port);
+            server_socket.setEnabledCipherSuites(pickedCipher); //server_socket.setEnabledCipherSuites(server_socket.getSupportedCipherSuites());
+            
+            //System.out.println("here!\n"+Arrays.toString(server_socket.getSupportedCipherSuites())+ "ereH!\n");
+            server_socket.setWantClientAuth(true);
+            server_socket.setNeedClientAuth(true);
+
             System.out.println("Server started: " + server_socket);
             start();
         } catch (IOException ioexception) {
@@ -70,7 +111,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
         }
         return -1;
     }
-    
+
     @Deprecated
     public synchronized void handle(int ID, String input) {
         if (input.equals(".quit")) {
@@ -92,8 +133,8 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
         }
     }
 
-      public synchronized void handle(int ID, Message m) {
-        if (m.getMessage().equals(".quit")) { 
+    public synchronized void handle(int ID, Message m) {
+        if (m.getMessage().equals(".quit")) {
             int leaving_id = findClient(ID);
             // Client exits
             clients[leaving_id].send(".quit", null);
@@ -111,7 +152,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
             }
         }
     }
-    
+
     public synchronized void remove(int ID) {
         int pos = findClient(ID);
 
@@ -155,56 +196,15 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
     }
 
     public static void main(String args[]) {
-        ServerSideOld server = null;
+        ServerSide server = null;
 
         if (args.length != 2) // Displays correct usage for server
         {
             System.out.println("Usage: java ServerSide port pass");
         } else // Calls new server
         {
-            server = new ServerSideOld(Integer.parseInt(args[0]), args[1]);
+            server = new ServerSide(Integer.parseInt(args[0]), args[1]);
         }
-    }
-
-    private static ServerSocketFactory getServerSocketFactory(String type, String pass) {
-        if (type.equals("TLS")) {
-            SSLServerSocketFactory ssf = null;
-            char[] passphrase = pass.toCharArray();
-            try {
-                // set up key manager to do server authentication
-                SSLContext ctx = SSLContext.getInstance("TLSV1.2");
-
-                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-                TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-                KeyStore ks = KeyStore.getInstance("JKS");
-                KeyStore kt = KeyStore.getInstance("JKS");
-
-                ks.load(new FileInputStream("certs/server.jks"), passphrase);
-                kt.load(new FileInputStream("certs/servercerts.jks"), passphrase);
-                kmf.init(ks, passphrase);
-                tmf.init(kt);
-
-                /*FileInputStream s = new FileInputStream("c:\\keys\\DebKeyStore.jks");
-
-                StringBuilder builder = new StringBuilder();
-                int ch;
-                while((ch = s.read()) != -1){
-                    builder.append((char)ch);
-                }
-
-                System.out.println(builder.toString());
-                 */
-                ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
-
-                ssf = ctx.getServerSocketFactory();
-                return ssf;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            return ServerSocketFactory.getDefault();
-        }
-        return null;
     }
 
     class ServerSideThread extends Thread {
@@ -221,7 +221,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
             socket = _socket;
             ID = socket.getPort();
         }
-        
+
         @Deprecated
         // Sends message to client
         public void send(String msg) {
@@ -234,7 +234,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
                 stop();
             }
         }
-       
+
         public void send(String msg, String username) {
             try {
                 Message m = new Message(msg, username);
@@ -246,8 +246,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
                 stop();
             }
         }
-        
-        
+
         // Gets id for client
         public int getID() {
             return ID;
@@ -260,8 +259,8 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
             while (true) {
                 try {
                     //server.handle(ID, streamIn.readUTF());
-                    server.handle(ID, (Message) streamIn.readObject());}
-                catch (IOException ioe) {
+                    server.handle(ID, (Message) streamIn.readObject());
+                } catch (IOException ioe) {
                     System.out.println(ID + " ERROR reading: " + ioe.getMessage());
                     server.remove(ID);
                     stop();
