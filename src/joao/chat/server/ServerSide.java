@@ -7,7 +7,7 @@ import java.io.*;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import joao.chat.client.Scheduler;
-
+//-Djavax.net.debug=ssl,handshake
 public class ServerSide implements Runnable { // Thread de Aceitação de Sockets!
 
     private ServerSideThread clients[] = new ServerSideThread[20];
