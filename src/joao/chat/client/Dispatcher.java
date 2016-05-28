@@ -25,7 +25,7 @@ public class Dispatcher extends Thread {
         try {
             socket.setEnabledCipherSuites(pickedCipher);
             socket.startHandshake();
-            System.out.println("Done scheduling!");
+            System.out.println("Done scheduling! "+this.socket);
         } catch (IOException e) {
             System.err.println("Error while scheduling!");
             e.printStackTrace();

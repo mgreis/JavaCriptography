@@ -6,6 +6,7 @@ import java.net.*;
 import java.io.*;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import joao.chat.client.Scheduler;
 
 public class ServerSide implements Runnable { // Thread de Aceitação de Sockets!
 
@@ -17,7 +18,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
 
     static final int SESSION_CACHE_SIZE = 4;    // Time sessions out after 15 minutes. 
     static final int SESSION_TIMEOUT = 15 * 60; // 15m
-
+    Scheduler scheduler = null;
     private static SSLServerSocketFactory getServerSocketFactory(String type, String pass) {
         if (type.equals("TLS")) {
             SSLServerSocketFactory ssf = null;
@@ -77,8 +78,11 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
             try {
                 // Adds new thread for new client
                 System.out.println("Waiting for a client ...");
-
-                addThread(server_socket.accept());
+                SSLSocket clientSocket = (SSLSocket) server_socket.accept();
+                clientSocket.setEnabledCipherSuites(pickedCipher);
+                clientSocket.startHandshake();
+                scheduler = new Scheduler(clientSocket);
+                addThread(clientSocket);
             } catch (IOException ioexception) {
                 System.out.println("Accept error: " + ioexception);
                 stop();
@@ -177,7 +181,7 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
         }
     }
 
-    private void addThread(Socket socket) {
+    private void addThread(SSLSocket socket) {
         if (clientCount < clients.length) {
             // Adds thread for new accepted client
             System.out.println("Client accepted: " + socket);
