@@ -51,8 +51,6 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
     }
 
     public ServerSide(int port, String pass) {
-        //System.setProperty("javax.net.debug", "ssl");
-        System.out.println("TROL");
         try {
             // Binds to port and starts server
             System.out.println("Binding to port " + port);
