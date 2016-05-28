@@ -78,8 +78,6 @@ public class ServerSide implements Runnable { // Thread de Aceitação de Socket
                 System.out.println("Waiting for a client ...");
                 SSLSocket clientSocket = (SSLSocket) server_socket.accept();
                 clientSocket.setEnabledCipherSuites(pickedCipher);
-                clientSocket.startHandshake();
-                scheduler = new Scheduler(clientSocket);
                 addThread(clientSocket);
             } catch (IOException ioexception) {
                 System.out.println("Accept error: " + ioexception);
